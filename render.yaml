@@ -1,0 +1,106 @@
+## render.yaml — Render Blueprint for EmailJobScheduler
+## Docs: https://render.com/docs/blueprint-spec
+##
+## Services defined here:
+##  1. backend      — Express API + BullMQ workers (Web Service, Docker)
+##  2. frontend     — Next.js 14 app (Web Service, Docker)
+##  3. redis        — Redis 7 (Redis instance, Render managed)
+##
+## NOTE: PostgreSQL is created separately as a "PostgreSQL" database below.
+##       Elasticsearch is NOT available as Render managed service — use Bonsai free tier.
+
+databases:
+  - name: email-scheduler-db
+    databaseName: email_scheduler
+    user: postgres
+    plan: free          # change to "starter" or "standard" in production
+
+services:
+
+  # ─────────────────────────────────────────────
+  # 1. BACKEND — Express API + BullMQ
+  # ─────────────────────────────────────────────
+  - type: web
+    name: email-scheduler-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Database — auto-linked from the database block above
+      - key: DATABASE_URL
+        fromDatabase:
+          name: email-scheduler-db
+          property: connectionString
+
+      # Redis — auto-linked from the redis service below
+      - key: REDIS_HOST
+        fromService:
+          name: email-scheduler-redis
+          type: redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: email-scheduler-redis
+          type: redis
+          property: port
+
+      # Elasticsearch — sign up at https://bonsai.io (free tier)
+      - key: ELASTICSEARCH_NODE
+        sync: false
+
+      # Auth Secrets — set these manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      # Slack OAuth — set after creating your Slack App
+      - key: SLACK_CLIENT_ID
+        sync: false
+      - key: SLACK_CLIENT_SECRET
+        sync: false
+      - key: SLACK_REDIRECT_URI
+        value: https://email-scheduler-backend.onrender.com/api/slack/callback
+
+      # CORS — allow frontend origin
+      - key: FRONTEND_URL
+        value: https://email-scheduler-frontend.onrender.com
+
+      # Worker tuning
+      - key: EMAIL_WORKER_CONCURRENCY
+        value: "5"
+      - key: MIN_EMAIL_DELAY_MS
+        value: "2000"
+      - key: MAX_EMAILS_PER_HOUR_PER_SENDER
+        value: "200"
+
+  # ─────────────────────────────────────────────
+  # 2. FRONTEND — Next.js 14
+  # ─────────────────────────────────────────────
+  - type: web
+    name: email-scheduler-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    buildArgs:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://email-scheduler-backend.onrender.com
+      - key: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+        sync: false
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+  # ─────────────────────────────────────────────
+  # 3. REDIS — Render Managed Redis
+  # ─────────────────────────────────────────────
+  - type: redis
+    name: email-scheduler-redis
+    plan: free
+    ipAllowList: []
