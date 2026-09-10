@@ -49,9 +49,10 @@ services:
           type: redis
           property: port
 
-      # Elasticsearch — sign up at https://bonsai.io (free tier)
-      - key: ELASTICSEARCH_NODE
-        sync: false
+      # Elasticsearch — OPTIONAL (skip karne par DB fallback activate hoga)
+      # Agar search performance chahiye toh https://bonsai.io se free URL lo
+      # - key: ELASTICSEARCH_NODE
+      #   sync: false
 
       # Auth Secrets — set these manually in Render dashboard
       - key: JWT_SECRET
@@ -81,21 +82,24 @@ services:
 
   # ─────────────────────────────────────────────
   # 2. FRONTEND — Next.js 14
+  # runtime: node  →  Render native Next.js support
+  # envVars here are available at BOTH build time and runtime
+  # so NEXT_PUBLIC_ vars get properly inlined by Next.js compiler
   # ─────────────────────────────────────────────
   - type: web
     name: email-scheduler-frontend
-    runtime: docker
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
+    runtime: node
+    rootDir: ./frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
     plan: free
-    buildArgs:
+    envVars:
+      - key: NODE_ENV
+        value: production
       - key: NEXT_PUBLIC_API_URL
         value: https://email-scheduler-backend.onrender.com
       - key: NEXT_PUBLIC_GOOGLE_CLIENT_ID
         sync: false
-    envVars:
-      - key: NODE_ENV
-        value: production
 
   # ─────────────────────────────────────────────
   # 3. REDIS — Render Managed Redis
