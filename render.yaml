@@ -65,11 +65,11 @@ services:
       - key: SLACK_CLIENT_SECRET
         sync: false
       - key: SLACK_REDIRECT_URI
-        value: https://email-scheduler-backend.onrender.com/api/slack/callback
+        value: https://email-scheduler-backend-39rx.onrender.com/api/slack/callback
 
       # CORS — allow frontend origin
       - key: FRONTEND_URL
-        value: https://email-scheduler-frontend.onrender.com
+        value: https://email-scheduler-frontend-g21k.onrender.com
 
       # Worker tuning
       - key: EMAIL_WORKER_CONCURRENCY
