@@ -1,7 +1,12 @@
 import axios from 'axios';
 import { User, EmailJob, ScheduleEmailsPayload } from '../types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://email-scheduler-backend-39rx.onrender.com';
+// Use relative URL — Next.js rewrites proxy /api/* to backend (no CORS)
+// See next.config.js rewrites()
+const API_BASE_URL =
+  typeof window === 'undefined'
+    ? (process.env.NEXT_PUBLIC_API_URL || 'https://email-scheduler-backend-39rx.onrender.com')
+    : ''; // browser: relative URL, goes through Next.js proxy
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
