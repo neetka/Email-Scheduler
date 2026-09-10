@@ -96,7 +96,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://email-scheduler-backend.onrender.com
+        value: https://email-scheduler-backend-39rx.onrender.com
       - key: NEXT_PUBLIC_GOOGLE_CLIENT_ID
         sync: false
 
