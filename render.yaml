@@ -12,7 +12,6 @@
 databases:
   - name: email-scheduler-db
     databaseName: email_scheduler
-    user: postgres
     plan: free          # change to "starter" or "standard" in production
 
 services:
