@@ -54,4 +54,4 @@ EXPOSE 4000
 ENTRYPOINT ["dumb-init", "--"]
 
 # Run migrations then start the server
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/index.js"]
